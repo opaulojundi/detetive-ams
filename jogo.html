@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mesa de Jogo — Detetive</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#c9a84c;--gold-l:#e8c96b;--gold-d:#8a6520;--cr:#8b1a1a;--cr-d:#5c0e0e;--cr-l:#c43a3a;--dk:#0d0a08;--dk2:#1a1410;--dk3:#2a2018;--parch:#f2e8d0;--parch2:#e8d8b0}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Crimson Text',serif;background:var(--dk);color:var(--parch);overflow:hidden;width:100vw;height:100vh;user-select:none}
+
+#shscreen{position:fixed;inset:0;z-index:850;background:rgba(13,10,8,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+#shtitle{font-family:'Cinzel Decorative',serif;font-size:26px;color:var(--gold);text-align:center;animation:pt 1.5s ease-in-out infinite}
+@keyframes pt{50%{opacity:.5}}
+#shdeck{position:relative;width:130px;height:190px}
+.shcard{position:absolute;width:100px;height:145px;border-radius:8px;border:2px solid var(--gold-d);background:linear-gradient(135deg,#1a0e05,#2d1c0d);left:15px;top:20px;transform-origin:center bottom}
+.shcard::before{content:'';position:absolute;inset:4px;border:1px solid rgba(201,168,76,.3);border-radius:4px}
+.shcard::after{content:'🕵';font-size:30px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+
+#csmodal{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center}
+#csbox{background:linear-gradient(135deg,#1a1008,#2d2010);border:3px solid var(--gold-d);box-shadow:0 0 60px rgba(0,0,0,.8),inset 0 0 40px rgba(0,0,0,.5);padding:28px;max-width:580px;width:90%;position:relative;border-radius:4px}
+#csbox::before{content:'';position:absolute;inset:6px;border:1px solid rgba(201,168,76,.2);pointer-events:none}
+#cstitle{font-family:'Cinzel',serif;font-size:20px;color:var(--gold);text-align:center;margin-bottom:20px}
+#cslist{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.citem{display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);cursor:pointer;transition:all .2s;border-radius:4px}
+.citem:hover:not(.taken){background:rgba(201,168,76,.15);border-color:var(--gold);transform:translateX(4px)}
+.citem.taken{opacity:.3;cursor:not-allowed}
+.ci-icon{font-size:26px}
+.ci-name{font-family:'Cinzel',serif;font-size:12px;color:var(--gold)}
+.ci-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+#gscreen{display:none;width:100vw;height:100vh;flex-direction:column;overflow:hidden}
+#topbar{height:50px;background:linear-gradient(90deg,#0d0a08,#1a1408,#0d0a08);border-bottom:2px solid var(--gold-d);display:flex;align-items:center;padding:0 14px;gap:14px;position:relative;z-index:50;flex-shrink:0}
+#glogo{font-family:'Cinzel Decorative',serif;font-size:17px;color:var(--gold);text-shadow:0 0 10px rgba(201,168,76,.4);letter-spacing:2px}
+.tbdiv{width:1px;height:22px;background:rgba(201,168,76,.3)}
+#cpinfo{display:flex;align-items:center;gap:7px;font-family:'Cinzel',serif;font-size:12px}
+#cpdot{width:11px;height:11px;border-radius:50%;border:2px solid rgba(255,255,255,.3)}
+#cpname{color:var(--gold-l)}
+#tblabel{color:var(--parch2);opacity:.6}
+.tbright{margin-left:auto;display:flex;gap:7px}
+.tbtn{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:var(--gold);font-family:'Cinzel',serif;font-size:10px;padding:5px 12px;cursor:pointer;letter-spacing:1px;transition:all .2s;border-radius:2px}
+.tbtn:hover{background:rgba(201,168,76,.2)}
+.tbtn:disabled{opacity:.3;cursor:not-allowed}
+
+#main{flex:1;display:flex;overflow:hidden;min-height:0}
+#lpanel{width:200px;flex-shrink:0;background:linear-gradient(180deg,#0d0a08,#12100a);border-right:2px solid rgba(201,168,76,.2);display:flex;flex-direction:column;overflow:hidden}
+.phdr{padding:8px 12px;border-bottom:1px solid rgba(201,168,76,.15);font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold);opacity:.8}
+.pentry{display:flex;align-items:center;gap:7px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s}
+.pentry.active{background:rgba(201,168,76,.08)}
+.pentry.elim{opacity:.35}
+.pdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.picon{font-size:18px}
+.pdet{flex:1;min-width:0}
+.pcname{font-family:'Cinzel',serif;font-size:10px;color:var(--parch);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ploc{font-size:10px;color:var(--parch2);opacity:.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pact{font-size:10px;color:var(--gold);animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+
+#mycp{flex:1;overflow-y:auto;min-height:0}
+#myclist{display:flex;flex-direction:column;gap:7px;padding:10px}
+.hcard{border-radius:6px;border:1px solid rgba(201,168,76,.3);overflow:hidden;height:65px;transition:transform .3s}
+.hcard-f{background:linear-gradient(135deg,#1e1408,#2d1e0a);display:flex;align-items:center;gap:7px;padding:7px 9px;height:100%}
+.hci{font-size:22px;flex-shrink:0}
+.hcinfo{flex:1;min-width:0}
+.hctype{font-size:8px;letter-spacing:2px;color:var(--gold);opacity:.7;font-family:'Cinzel',serif}
+.hcname{font-family:'IM Fell English',serif;font-size:12px;color:var(--parch);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hcs{border-color:#c43a3a}.hcw{border-color:#4a7cb5}.hcr{border-color:#4a8c55}
+
+#barea{flex:1;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:#1c1508}
+#bcontainer{position:relative;max-width:100%;max-height:100%}
+#mansion-svg{display:block;border:3px solid var(--gold-d);box-shadow:0 0 80px rgba(0,0,0,.9);border-radius:2px}
+.tok-group{cursor:pointer;transition:all .3s}
+.tok-group.active .tok-ring{filter:drop-shadow(0 0 6px currentColor)}
+
+#bottom{height:130px;flex-shrink:0;background:linear-gradient(180deg,#0d0a08,#0a0806);border-top:2px solid rgba(201,168,76,.2);display:flex;align-items:center;padding:0 14px;gap:18px}
+#darea{display:flex;flex-direction:column;align-items:center;gap:7px}
+#dcon{display:flex;gap:10px}
+.die{width:52px;height:52px;background:linear-gradient(135deg,#f5f0e8,#e8dcc8);border:2px solid var(--gold-d);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#1a1008}
+.die.rolling{animation:dr .6s ease-in-out}
+@keyframes dr{20%{transform:rotate(-20deg)}40%{transform:rotate(15deg)}80%{transform:rotate(5deg)}}
+#rollbtn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--dk);border:none;padding:7px 18px;cursor:pointer;border-radius:2px}
+#rollbtn:disabled{opacity:.4;cursor:not-allowed}
+#steps{font-family:'Cinzel',serif;font-size:11px;color:var(--gold);display:none}
+#actarea{display:flex;flex-direction:column;gap:7px}
+.abtn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);color:var(--gold);padding:8px 16px;cursor:pointer;border-radius:2px;min-width:130px;text-align:center}
+.abtn:disabled{opacity:.3;cursor:not-allowed}
+#phdisp{margin-left:auto;text-align:right}
+#phtitle{font-family:'Cinzel Decorative',serif;font-size:13px;color:var(--gold)}
+#phdesc{font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:var(--parch2);opacity:.7}
+
+#rpanel{width:300px;flex-shrink:0;background:#f5edd8;border-left:3px solid var(--gold-d);display:flex;flex-direction:column;overflow:hidden}
+#nbhdr{background:linear-gradient(135deg,#8b1a1a,#5c0e0e);padding:10px 14px}
+#nbtitle{font-family:'Cinzel Decorative',serif;font-size:13px;color:var(--gold)}
+#nbtabs{display:flex;background:#e8d8b0;border-bottom:2px solid var(--gold-d)}
+.nbtab{padding:7px 11px;cursor:pointer;font-family:'Cinzel',serif;font-size:9px;color:#5c4020;background:transparent;border:none}
+.nbtab.active{background:#f5edd8;color:#3d1a0a}
+#nbbody{flex:1;overflow-y:auto;background:#f5edd8;padding:10px 14px 14px 36px;position:relative}
+#nbbody::before{content:'';position:absolute;left:26px;top:0;bottom:0;width:2px;background:rgba(255,100,100,.3)}
+.nbsec{margin-bottom:14px}
+.nbsectitle{font-family:'Cinzel',serif;font-size:10px;color:#8b1a1a;border-bottom:1px solid rgba(139,26,26,.3);padding-bottom:3px}
+.nbrow{display:flex;align-items:center;gap:6px;min-height:27px}
+.nblabel{font-family:'Crimson Text',serif;font-size:13px;color:#2a1008;flex:1}
+.nbchecks{display:flex;gap:3px}
+.nbck{width:19px;height:19px;border:1.5px solid #8b4020;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8b1a1a}
+.nbck.confirmed{background:rgba(139,26,26,.3)}
+.nbck.cleared{background:rgba(50,150,50,.2);border-color:#286428;color:#286428}
+
+.gmodal{position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center}
+.gmbox{background:linear-gradient(160deg,#1a1008,#2d1c08,#1a1008);border:3px solid var(--gold-d);padding:28px;max-width:480px;width:90%;border-radius:4px}
+.mtitle{font-family:'Cinzel Decorative',serif;font-size:20px;color:var(--gold);text-align:center;margin-bottom:20px}
+.mrow{margin-bottom:14px}
+.mlabel{font-family:'Cinzel',serif;font-size:10px;color:var(--gold);opacity:.7}
+.msel{width:100%;padding:9px 12px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);color:var(--parch);font-size:14px}
+.msel option{background:#1a1008;color:var(--parch)}
+.mbtns{display:flex;gap:10px;margin-top:20px}
+.mbtn{flex:1;padding:11px;font-family:'Cinzel',serif;font-size:12px;border:none;cursor:pointer}
+.mbc{background:rgba(201,168,76,.1);color:var(--parch2);border:1px solid rgba(201,168,76,.2)}
+.mbconf{background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--dk)}
+.revcard{width:110px;height:160px;border-radius:8px;border:2px solid var(--gold);background:linear-gradient(135deg,#1e1408,#2d1e0a);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}
+.revci{font-size:38px}
+.revcn{font-family:'Cinzel',serif;font-size:12px;color:var(--gold)}
+
+#endscreen{position:fixed;inset:0;z-index:950;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.92)}
+#endtitle{font-family:'Cinzel Decorative',serif;font-size:clamp(26px,5vw,52px);color:var(--gold)}
+#endsub{font-family:'IM Fell English',serif;font-style:italic;font-size:20px;color:var(--parch2);margin:15px 0}
+#endbtn{font-family:'Cinzel',serif;font-size:15px;background:linear-gradient(135deg,var(--gold-d),var(--gold));padding:13px 38px;border:none;cursor:pointer;margin-top:20px}
+
+#logdisp{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:var(--parch2);background:rgba(0,0,0,.6);padding:4px 12px;border-radius:20px;border:1px solid rgba(201,168,76,.2);z-index:20}
+#botthink{position:absolute;top:10px;left:50%;transform:translateX(-50%);font-family:'Cinzel',serif;font-size:11px;color:var(--gold);opacity:0;background:rgba(0,0,0,.7);padding:5px 14px;border-radius:20px;border:1px solid rgba(201,168,76,.3);transition:opacity .4s;z-index:20}
+#botthink.show{opacity:1}
+
+/* ══════════ RESPONSIVIDADE PWA ══════════ */
+@media (max-width: 860px) {
+  #lpanel{width:0;overflow:hidden;border:none;position:absolute;left:0;top:50px;bottom:130px;z-index:40;transition:width .3s}
+  #lpanel.open{width:180px;border-right:2px solid rgba(201,168,76,.3)}
+  #rpanel{width:100%;border-left:none;border-top:3px solid var(--gold-d);position:fixed;bottom:0;left:0;right:0;height:0;overflow:hidden;z-index:45;transition:height .3s}
+  #rpanel.open{height:55vh}
+  #panel-toggle, #notebook-toggle{display:flex !important}
+  #bottom{height:auto;min-height:80px;padding:8px 10px;gap:10px;flex-wrap:wrap}
+  .die{width:42px;height:42px;font-size:20px}
+  .abtn{min-width:110px}
+}
+@media (max-width: 600px) {
+  #topbar{padding:0 8px;gap:8px;height:46px}
+  #glogo{display:none}
+  #bottom{justify-content:space-between}
+  #phdisp{display:none}
+}
+</style>
+</head>
+<body>
+
+<div id="shscreen">
+  <div id="shtitle">Distribuindo as cartas do crime...</div>
+  <div id="shdeck"><div class="shcard"></div></div>
+</div>
+
+<div id="csmodal">
+  <div id="csbox">
+    <div id="cstitle">Escolha seu Personagem</div>
+    <div id="cslist"></div>
+  </div>
+</div>
+
+<div id="gscreen">
+  <div id="topbar">
+    <button class="tbtn" id="panel-toggle" style="display:none" onclick="togglePanel()">👥</button>
+    <button class="tbtn" id="notebook-toggle" style="display:none" onclick="toggleNotebook()">📓</button>
+    <div id="cpinfo"><div id="cpdot"></div><span id="cpname">—</span></div>
+    <div class="tbright">
+      <button class="tbtn" onclick="openSug()" id="sugbtn">💬 SUGESTÃO</button>
+      <button class="tbtn" onclick="openAcc()" id="accbtn" style="color:#ff9999">⚖️ ACUSAÇÃO</button>
+    </div>
+  </div>
+  
+  <div id="main">
+    <div id="lpanel">
+      <div class="phdr">JOGADORES</div>
+      <div id="plist"></div>
+      <div id="mycp"><div class="phdr">MINHAS CARTAS</div><div id="myclist"></div></div>
+    </div>
+    
+    <div id="barea">
+      <div id="bcontainer"></div>
+      <div id="botthink">🤔 Bot pensando...</div>
+    </div>
+    
+    <div id="rpanel">
+      <div id="nbhdr"><div id="nbtitle">📓 CADERNO DE NOTAS</div></div>
+      <div id="nbtabs">
+        <button class="nbtab active" onclick="swTab('suspects')">SUSPEITOS</button>
+        <button class="nbtab" onclick="swTab('weapons')">ARMAS</button>
+        <button class="nbtab" onclick="swTab('rooms')">CÔMODOS</button>
+      </div>
+      <div id="nbbody">
+        <div id="nb-suspects-tab"><div class="nbsec"><div id="nbslist"></div></div></div>
+        <div id="nb-weapons-tab" style="display:none"><div class="nbsec"><div id="nbwlist"></div></div></div>
+        <div id="nb-rooms-tab" style="display:none"><div class="nbsec"><div id="nbrlist"></div></div></div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="bottom">
+    <div id="darea">
+      <div id="dcon"><div class="die" id="die1">⚀</div><div class="die" id="die2">⚁</div></div>
+      <button id="rollbtn" onclick="rollDice()">🎲 ROLAR DADOS</button>
+      <div id="steps">Passos: <span id="stcount">0</span></div>
+    </div>
+    <div id="actarea"><button class="abtn" id="etbtn" onclick="endTurn()" disabled>⏭ ENCERRAR VEZ</button></div>
+    <div id="phdisp"><div id="phtitle">Início</div><div id="phdesc">Role os dados</div></div>
+  </div>
+</div>
+
+<div class="gmodal" id="sugmodal">
+  <div class="gmbox">
+    <div class="mtitle">💬 Fazer Sugestão</div>
+    <div class="mrow"><div class="mlabel">SUSPEITO</div><select class="msel" id="sugsus"></select></div>
+    <div class="mrow"><div class="mlabel">ARMA</div><select class="msel" id="sugwep"></select></div>
+    <div class="mrow"><div class="mlabel">CÔMODO</div><div id="sugroom" style="color:var(--gold); padding:5px 0;">—</div></div>
+    <div class="mbtns">
+      <button class="mbtn mbc" onclick="closeM('sugmodal')">CANCELAR</button>
+      <button class="mbtn mbconf" onclick="confirmSug()">CONFIRMAR</button>
+    </div>
+  </div>
+</div>
+
+<div class="gmodal" id="accmodal">
+  <div class="gmbox">
+    <div class="mtitle" style="color:#ff9999">⚖️ Acusação Final</div>
+    <div class="mrow"><div class="mlabel">SUSPEITO</div><select class="msel" id="accsus"></select></div>
+    <div class="mrow"><div class="mlabel">ARMA</div><select class="msel" id="accwep"></select></div>
+    <div class="mrow"><div class="mlabel">CÔMODO</div><select class="msel" id="accroom"></select></div>
+    <div class="mbtns">
+      <button class="mbtn mbc" onclick="closeM('accmodal')">CANCELAR</button>
+      <button class="mbtn mbconf" style="background:#5c0e0e; color:white" onclick="confirmAcc()">ACUSAR!</button>
+    </div>
+  </div>
+</div>
+
+<div class="gmodal" id="revmodal">
+  <div class="gmbox">
+    <div class="mtitle">🃏 Revelação</div>
+    <div id="revcontent" style="display:flex; flex-direction:column; align-items:center;"></div>
+    <div class="mbtns"><button class="mbtn mbconf" onclick="closeM('revmodal')">CONTINUAR</button></div>
+  </div>
+</div>
+
+<div id="endscreen">
+  <div id="endtitle">FIM DE JOGO</div>
+  <div id="endsub"></div>
+  <button id="endbtn" onclick="location.reload()">NOVA PARTIDA</button>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// MOTOR DO JOGO E VARIÁVEIS GLOBAIS
+// ═══════════════════════════════════
+const SUSPECTS=[
+  {id:'s1', name:'Srta. Scarlet', icon:'💃', color:'#c43a3a', pos:0},
+  {id:'s2', name:'Coronel Mustard', icon:'🪖', color:'#d4a373', pos:0},
+  {id:'s3', name:'Sr. Green', icon:'💵', color:'#4a8c55', pos:0},
+  {id:'s4', name:'Sra. Peacock', icon:'🦚', color:'#4a7cb5', pos:0},
+  {id:'s5', name:'Prof. Plum', icon:'🔮', color:'#8a5a8a', pos:0},
+  {id:'s6', name:'Sra. White', icon:'🧼', color:'#e5e5e5', pos:0}
+];
+const WEAPONS=[
+  {id:'w1', name:'Corda', icon:'🪘'},{id:'w2', name:'Cano de Ferro', icon:'🚰'},
+  {id:'w3', name:'Faca', icon:'🔪'},{id:'w4', name:'Chave Inglesa', icon:'🔧'},
+  {id:'w5', name:'Castiçal', icon:'🕯'},{id:'w6', name:'Revólver', icon:'🔫'}
+];
+const ROOMS=[
+  {id:'r1', name:'Hall', icon:'🚪', x:250, y:250, r:45},
+  {id:'r2', name:'Salão de Jogos', icon:'🎱', x:90, y:90, r:40},
+  {id:'r3', name:'Biblioteca', icon:'📚', x:90, y:250, r:40},
+  {id:'r4', name:'Estúdio', icon:'💼', x:90, y:410, r:40},
+  {id:'r5', name:'Auditório', icon:'🎭', x:250, y:90, r:40},
+  {id:'r6', name:'Taberna', icon:'🍺', x:250, y:410, r:40},
+  {id:'r7', name:'Cozinha', icon:'🍳', x:410, y:90, r:40},
+  {id:'r8', name:'Sala de Jantar', icon:'🍷', x:410, y:250, r:40},
+  {id:'r9', name:'Observatório', icon:'🔭', x:410, y:410, r:40}
+];
+
+let players=[], humanPlayer=null, currentPlayerIdx=0, totalPlayers=3;
+let solution={}, cardsDeck=[], diceTotal=0, stepsLeft=0, currentPhase='roll';
+
+window.onload=function(){
+  totalPlayers = parseInt(localStorage.getItem('detetive_player_count')) || 3;
+  document.getElementById('shscreen').style.display='flex';
+  setTimeout(() => {
+    document.getElementById('shscreen').style.display='none';
+    showCharacterSelection();
+  }, 1500);
+};
+
+function showCharacterSelection(){
+  const box = document.getElementById('cslist');
+  box.innerHTML='';
+  SUSPECTS.forEach(s=>{
+    let d=document.createElement('div');
+    d.className='citem';
+    d.innerHTML=`<span class="ci-icon">${s.icon}</span><span class="ci-name">${s.name}</span>`;
+    d.onclick=()=>initGameWithCharacter(s.id);
+    box.appendChild(d);
+  });
+  document.getElementById('csmodal').style.display='flex';
+}
+
+function initGameWithCharacter(charId){
+  document.getElementById('csmodal').style.display='none';
+  document.getElementById('gscreen').style.display='flex';
+  
+  let chosen = SUSPECTS.find(s=>s.id===charId);
+  players.push({id: 'p1', name: chosen.name, icon: chosen.icon, color: chosen.color, isBot: false, pos: ROOMS[0], cards: [], elim: false});
+  
+  let rem = SUSPECTS.filter(s=>s.id!==charId);
+  for(let i=1; i<totalPlayers; i++){
+    let b = rem.splice(Math.floor(Math.random()*rem.length),1)[0];
+    players.push({id: 'p'+(i+1), name: b.name, icon: b.icon, color: b.color, isBot: true, pos: ROOMS[0], cards: [], elim: false});
+  }
+  
+  humanPlayer = players[0];
+  setupEnvelopes();
+  buildSVGBoard();
+  buildNotebook();
+  populateDropdowns();
+  startTurn();
+}
+
+function setupEnvelopes(){
+  solution = {
+    suspect: SUSPECTS[Math.floor(Math.random()*SUSPECTS.length)],
+    weapon: WEAPONS[Math.floor(Math.random()*WEAPONS.length)],
+    room: ROOMS[Math.floor(Math.random()*ROOMS.length)]
+  };
+  let all = [...SUSPECTS, ...WEAPONS, ...ROOMS].filter(c => c.id!==solution.suspect.id && c.id!==solution.weapon.id && c.id!==solution.room.id);
+  all.sort(()=>Math.random()-0.5);
+  let p=0;
+  while(all.length>0){
+    players[p].cards.push(all.pop());
+    p = (p+1)%players.length;
+  }
+  renderMyCards();
+}
+
+function renderMyCards(){
+  const box = document.getElementById('myclist');
+  box.innerHTML='';
+  humanPlayer.cards.forEach(c=>{
+    let type = SUSPECTS.includes(c)?'SUSPEITO':WEAPONS.includes(c)?'ARMA':'CÔMODO';
+    let cls = SUSPECTS.includes(c)?'hcs':WEAPONS.includes(c)?'hcw':'hcr';
+    box.innerHTML += `<div class="hcard ${cls}"><div class="hcard-f"><span class="hci">${c.icon}</span><div class="hcinfo"><span class="hctype">${type}</span><div class="hcname">${c.name}</div></div></div></div>`;
+  });
+}
+
+function buildSVGBoard(){
+  let c = document.getElementById('bcontainer');
+  let svg = `<svg id='mansion-svg' width='500' height='500' style='background:#120e0a;'>`;
+  ROOMS.forEach(r=>{
+    svg += `<circle cx='${r.x}' cy='${r.y}' r='${r.r}' fill='#2d2015' stroke='#c9a84c' stroke-width='2' onclick='moveClick("${r.id}")' style='cursor:pointer;' />`;
+    svg += `<text x='${r.x}' y='${r.y-10}' font-size='10' fill='#e8d8b0' text-anchor='middle' font-family='Cinzel'>${r.name}</text>`;
+    svg += `<text x='${r.x}' y='${r.y+15}' font-size='16' text-anchor='middle'>${r.icon}</text>`;
+  });
+  players.forEach((p,i)=>{
+    if(!p.elim){
+      let ox = p.pos.x + (i-totalPlayers/2)*12;
+      svg += `<g class='tok-group' id='tok-${p.id}' transform='translate(${ox},${p.pos.y+25})'><circle r='8' fill='${p.color}' stroke='#fff' stroke-width='1.5'/><text y='3' font-size='8' text-anchor='middle' fill='#000' font-weight='bold'>${i+1}</text></g>`;
+    }
+  });
+  svg += `</svg>`;
+  c.innerHTML = svg;
+}
+
+function buildNotebook(){
+  ['nbslist', 'nbwlist', 'nbrlist'].forEach((id, idx)=>{
+    let arr = idx===0?SUSPECTS:idx===1?WEAPONS:ROOMS;
+    let container = document.getElementById(id);
+    container.innerHTML='';
+    arr.forEach(item=>{
+      container.innerHTML += `<div class="nbrow"><span class="nblabel">${item.icon} ${item.name}</span><div class="nbchecks"><div class="nbck" onclick="cycleCk(this)">-</div></div></div>`;
+    });
+  });
+}
+
+function cycleCk(el){
+  if(el.textContent==='-') { el.textContent='✗'; el.className='nbck cleared'; }
+  else if(el.textContent==='✗') { el.textContent='✓'; el.className='nbck confirmed'; }
+  else { el.textContent='-'; el.className='nbck'; }
+}
+
+function populateDropdowns(){
+  let s1=document.getElementById('sugsus'), s2=document.getElementById('sugwep'), a1=document.getElementById('accsus'), a2=document.getElementById('accwep'), a3=document.getElementById('accroom');
+  SUSPECTS.forEach(s=>{ s1.innerHTML+=`<option value='${s.id}'>${s.name}</option>`; a1.innerHTML+=`<option value='${s.id}'>${s.name}</option>`; });
+  WEAPONS.forEach(w=>{ s2.innerHTML+=`<option value='${w.id}'>${w.name}</option>`; a2.innerHTML+=`<option value='${w.id}'>${w.name}</option>`; });
+  ROOMS.forEach(r=>{ a3.innerHTML+=`<option value='${r.id}'>${r.name}</option>`; });
+}
+
+function startTurn(){
+  let p = players[currentPlayerIdx];
+  document.getElementById('cpdot').style.backgroundColor=p.color;
+  document.getElementById('cpname').textContent=p.name.toUpperCase();
+  
+  if(p.elim){ nextPlayer(); return; }
+  
+  if(p.isBot){
+    document.getElementById('rollbtn').disabled=true;
+    document.getElementById('etbtn').disabled=true;
+    setPhase('Pensando', 'O bot está planejando a jogada...');
+    document.getElementById('botthink').className='show';
+    setTimeout(()=>botAction(p), 1200);
+  }else{
+    document.getElementById('rollbtn').disabled=false;
+    document.getElementById('etbtn').disabled=true;
+    setPhase('Sua Vez', 'Role os dados para se movimentar.');
+    document.getElementById('botthink').className='';
+  }
+  updatePlayerList();
+}
+
+function rollDice(){
+  let d1 = Math.floor(Math.random()*6)+1;
+  let d2 = Math.floor(Math.random()*6)+1;
+  const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
+  document.getElementById('die1').textContent=faces[d1-1];
+  document.getElementById('die2').textContent=faces[d2-1];
+  diceTotal = d1+d2;
+  stepsLeft = diceTotal;
+  
+  document.getElementById('steps').style.display='block';
+  document.getElementById('stcount').textContent=stepsLeft;
+  document.getElementById('rollbtn').disabled=true;
+  
+  setPhase('Movimento', 'Clique em qualquer cômodo para mover seu peão.');
+  currentPhase='move';
+}
+
+function moveClick(roomId){
+  if(currentPhase!=='move' || players[currentPlayerIdx].isBot) return;
+  let target = ROOMS.find(r=>r.id===roomId);
+  players[currentPlayerIdx].pos = target;
+  buildSVGBoard();
+  
+  document.getElementById('steps').style.display='none';
+  document.getElementById('sugroom').textContent=target.name;
+  currentPhase='action';
+  setPhase('Ações', 'Faça uma sugestão ou encerre o turno.');
+  document.getElementById('etbtn').disabled=false;
+}
+
+function botAction(bot){
+  let d1 = Math.floor(Math.random()*6)+1;
+  let d2 = Math.floor(Math.random()*6)+1;
+  bot.pos = ROOMS[Math.floor(Math.random()*ROOMS.length)];
+  buildSVGBoard();
+  
+  // O bot escolhe aleatoriamente e faz sugestão fictícia
+  let randomSus = SUSPECTS[Math.floor(Math.random()*SUSPECTS.length)];
+  let randomWep = WEAPONS[Math.floor(Math.random()*WEAPONS.length)];
+  showLog(`${bot.name} sugeriu ${randomSus.name} com ${randomWep.name} no(a) ${bot.pos.name}`);
+  
+  setTimeout(()=>{
+    document.getElementById('botthink').className='';
+    nextPlayer();
+  }, 1500);
+}
+
+function openM(id){ document.getElementById(id).style.display='flex'; }
+function closeM(id){ document.getElementById(id).style.display='none'; }
+
+function openSug(){
+  if(currentPhase!=='action') return;
+  document.getElementById('sugroom').textContent=players[currentPlayerIdx].pos.name;
+  openM('sugmodal');
+}
+function confirmSug(){
+  closeM('sugmodal');
+  let sus = SUSPECTS.find(s=>s.id===document.getElementById('sugsus').value);
+  let wep = WEAPONS.find(w=>w.id===document.getElementById('sugwep').value);
+  let room = players[currentPlayerIdx].pos;
+  
+  showLog(`Você sugeriu ${sus.name} com ${wep.name} no(a) ${room.name}`);
+  
+  // Verifica se alguém tem carta para contestar
+  let refuted = false;
+  for(let i=1; i<players.length; i++){
+    let match = players[i].cards.find(c=>c.id===sus.id || c.id===wep.id || c.id===room.id);
+    if(match){
+      document.getElementById('revcontent').innerHTML=`<p class="revwho">${players[i].name} provou que você está errado mostrando:</p><div class="revcard"><span class="revci">${match.icon}</span><span class="revcn">${match.name}</span></div>`;
+      openM('revmodal');
+      refuted=true;
+      break;
+    }
+  }
+  if(!refuted){
+    document.getElementById('revcontent').innerHTML=`<p class="revtxt">Nenhum jogador conseguiu refutar sua sugestão!</p>`;
+    openM('revmodal');
+  }
+}
+
+function openAcc(){ openM('accmodal'); }
+function confirmAcc(){
+  closeM('accmodal');
+  let sus = document.getElementById('accsus').value;
+  let wep = document.getElementById('accwep').value;
+  let room = document.getElementById('accroom').value;
+  
+  if(sus===solution.suspect.id && wep===solution.weapon.id && room===solution.room.id){
+    endGame(true, `Parabéns! Você resolveu o caso. O assassino era ${solution.suspect.name}!`);
+  } else {
+    endGame(false, `Sua acusação estava incorreta! O crime perfeito continua...`);
+  }
+}
+
+function endGame(win, msg){
+  document.getElementById('endscreen').style.display='flex';
+  document.getElementById('endsub').textContent = msg;
+}
+
+function endTurn(){ nextPlayer(); }
+function nextPlayer(){ currentPlayerIdx=(currentPlayerIdx+1)%players.length; startTurn(); }
+function setPhase(title, desc){ document.getElementById('phtitle').textContent=title; document.getElementById('phdesc').textContent=desc; }
+
+function showLog(msg){
+  let l = document.getElementById('logdisp');
+  if(!l){
+    l = document.createElement('div'); l.id='logdisp';
+    document.body.appendChild(l);
+  }
+  l.textContent = msg;
+  l.style.display='block';
+}
+
+function updatePlayerList(){
+  let pbox = document.getElementById('plist'); pbox.innerHTML='';
+  players.forEach((p,i)=>{
+    pbox.innerHTML += `<div class="pentry ${i===currentPlayerIdx?'active':''} ${p.elim?'elim':''}"><div class="pdot" style="background:${p.color}"></div><div class="pdet"><div class="pcname">${p.name}</div><div class="ploc">${p.pos.name}</div></div></div>`;
+  });
+}
+
+// Alternar abas do caderno
+function swTab(tab){
+  ['suspects', 'weapons', 'rooms'].forEach(t=>{
+    let el = document.getElementById(`nb-${t}-tab`);
+    if(el) el.style.style.display = t===tab?'block':'none';
+  });
+  let tabs = document.querySelectorAll('.nbtab');
+  tabs.forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// Controle de menus colapsáveis no Mobile
+function togglePanel(){ document.getElementById('lpanel').classList.toggle('open'); }
+function toggleNotebook(){ document.getElementById('rpanel').classList.toggle('open'); }
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+</body>
+</html>
