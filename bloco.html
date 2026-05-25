@@ -2,20 +2,21 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Detetive - Bloco de Notas</title>
     <style>
-        /* CSS - Estilização Modern Noir */
+        /* CSS — Estilização do Jogo Original Integrada */
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --accent-gold: #d4af37;
-            --accent-red: #8b0000;
-            --text-color: #e0e0e0;
-            --text-muted: #888;
-            --border-color: #333;
-            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --font-title: 'Georgia', serif;
+            --gold: #c9a84c;
+            --gold-l: #e8c96b;
+            --gold-d: #8a6520;
+            --cr: #8b1a1a;
+            --cr-d: #5c0e0e;
+            --dk: #0d0a08;
+            --dk2: #1a1410;
+            --dk3: #2a2018;
+            --parch: #f5edd8;      /* Cor de papel pergaminho do bloco */
+            --text-dark: #2a1008;  /* Cor de caneta envelhecida */
         }
 
         * {
@@ -26,134 +27,163 @@
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: var(--font-main);
+            background-color: var(--dk);
+            color: #f2e8d0;
+            font-family: 'Crimson Text', serif;
             line-height: 1.6;
-            padding-bottom: 80px; /* Espaço para o botão flutuante */
+            padding-bottom: 90px; /* Espaço para o botão flutuante */
         }
 
         header {
-            background: linear-gradient(to bottom, #1a1a1a, #121212);
-            padding: 2rem 1rem;
+            background: linear-gradient(180deg, #140f0b, var(--dk));
+            padding: 24px 12px;
             text-align: center;
-            border-bottom: 2px solid var(--accent-gold);
+            border-bottom: 2px solid var(--gold-d);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
             margin-bottom: 1.5rem;
         }
 
         h1 {
-            font-family: var(--font-title);
-            color: var(--accent-gold);
+            font-family: 'Cinzel Decorative', serif;
+            color: var(--gold);
             text-transform: uppercase;
-            letter-spacing: 3px;
-            font-size: 1.8rem;
+            letter-spacing: 2px;
+            font-size: 22px;
+            text-shadow: 0 2px 4px #000;
         }
 
         .container {
-            max-width: 600px;
+            max-width: 550px;
             margin: 0 auto;
-            padding: 0 15px;
+            padding: 0 12px;
         }
 
+        /* Seção do Bloco de Notas Estilo Vintage */
         .category-section {
-            background-color: var(--card-bg);
-            border-radius: 8px;
+            background-color: var(--parch);
+            border-radius: 4px;
             margin-bottom: 2rem;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+            border: 1px solid var(--gold-d);
+            position: relative;
         }
 
         .category-header {
-            background-color: var(--accent-red);
-            color: white;
-            padding: 10px 15px;
-            font-family: var(--font-title);
+            background: linear-gradient(135deg, var(--cr), var(--cr-d));
+            color: var(--gold-l);
+            padding: 10px 16px 10px 36px;
+            font-family: 'Cinzel', serif;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            font-size: 12px;
+            letter-spacing: 2px;
+            border-bottom: 2px solid var(--gold-d);
         }
 
-        /* Lista de Itens */
+        /* Linhas contábeis vermelhas nas margens do papel do caderno antigo */
+        .category-section::before {
+            content: '';
+            position: absolute;
+            left: 26px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 100, 100, 0.25);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Lista de Itens (Linhas do Bloco) */
         .item-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border-color);
-            transition: all 0.3s ease;
+            padding: 10px 14px 10px 36px;
+            border-bottom: 1px solid rgba(139, 26, 26, 0.12);
+            transition: all 0.2s ease;
+            min-height: 54px;
         }
 
         .item-row:last-child { border-bottom: none; }
 
         .item-name {
             flex-grow: 1;
-            font-size: 1rem;
-            font-weight: 500;
+            font-family: 'IM Fell English', serif;
+            font-size: 16px;
+            color: var(--text-dark);
+            font-weight: 600;
         }
 
-        /* Controles de marcação */
+        /* Controles de marcação adaptados do Jogo */
         .controls {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .btn-mark {
-            width: 40px;
-            height: 40px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background: #2a2a2a;
-            color: var(--text-muted);
+            width: 34px;
+            height: 34px;
+            border-radius: 2px;
+            border: 1px solid rgba(92, 64, 32, 0.3);
+            background: transparent;
+            color: rgba(92, 64, 32, 0.5);
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 900;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: 0.2s;
+            transition: all 0.2s;
         }
 
-        /* Estados Ativos */
+        /* ══════════ ESTADOS ATIVOS ══════════ */
+        
         /* X - Inocente */
         .item-row.state-innocent {
-            opacity: 0.4;
-            background-color: rgba(0,0,0,0.2);
+            opacity: 0.45;
+            background-color: rgba(50, 50, 50, 0.04);
         }
         .item-row.state-innocent .item-name {
             text-decoration: line-through;
+            font-style: italic;
         }
         .item-row.state-innocent .btn-x {
-            background-color: #444;
+            background-color: #3a3a3a;
             color: white;
-            border-color: #666;
+            border-color: #3a3a3a;
         }
 
-        /* V - Possui a carta */
+        /* ✓ - Possui a carta */
         .item-row.state-has {
-            border-left: 5px solid var(--accent-gold);
-            background-color: rgba(212, 175, 55, 0.05);
+            border-left: 4px solid var(--cr);
+            background-color: rgba(139, 26, 26, 0.06);
+        }
+        .item-row.state-has .item-name {
+            color: var(--cr-d);
         }
         .item-row.state-has .btn-v {
-            background-color: var(--accent-gold);
-            color: black;
-            border-color: var(--accent-gold);
+            background-color: var(--cr);
+            color: white;
+            border-color: var(--cr);
         }
 
         /* ? - Dúvida */
+        .item-row.state-doubt {
+            background-color: rgba(201, 168, 76, 0.08);
+        }
         .item-row.state-doubt .item-name {
-            color: var(--accent-gold);
+            color: #8a6520;
             font-style: italic;
         }
         .item-row.state-doubt .btn-q {
-            background-color: #3d3d3d;
-            color: cyan;
-            border-color: cyan;
+            background-color: var(--gold-d);
+            color: white;
+            border-color: var(--gold-d);
         }
 
-        /* Botão Resetar */
+        /* Botão Resetar Flutuante Carmesim */
         .reset-container {
             position: fixed;
             bottom: 20px;
@@ -162,25 +192,28 @@
         }
 
         .btn-reset {
-            background-color: var(--accent-red);
+            background: linear-gradient(135deg, var(--cr), var(--cr-d));
             color: white;
-            border: none;
-            padding: 15px 25px;
-            border-radius: 50px;
+            border: 1px solid var(--gold);
+            padding: 14px 24px;
+            border-radius: 30px;
+            font-family: 'Cinzel', serif;
+            font-size: 10px;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
             cursor: pointer;
             text-transform: uppercase;
-            font-size: 0.8rem;
             letter-spacing: 1px;
+            transition: all 0.2s;
         }
 
-        .btn-reset:active { transform: scale(0.95); }
+        .btn-reset:active { transform: scale(0.94); }
 
         /* Responsividade */
         @media (max-width: 400px) {
-            .btn-mark { width: 35px; height: 35px; }
-            .item-name { font-size: 0.9rem; }
+            .item-row { padding-left: 32px; padding-right: 8px; }
+            .btn-mark { width: 30px; height: 30px; font-size: 11px; }
+            .item-name { font-size: 14px; }
         }
     </style>
 </head>
@@ -188,20 +221,17 @@
 
     <header>
         <h1>Investigação</h1>
-        <p style="color: var(--text-muted); font-size: 0.8rem;">BLOCO DE NOTAS CRIMINAL</p>
+        <p style="color: var(--gold-l); font-size: 9px; font-family: 'Cinzel', serif; letter-spacing: 3px; opacity: 0.6; margin-top: 2px;">BLOCO DE NOTAS CRIMINAL</p>
     </header>
 
     <div class="container" id="main-content">
-        <!-- As categorias serão geradas via JavaScript -->
-    </div>
+        </div>
 
     <div class="reset-container">
         <button class="btn-reset" onclick="confirmReset()">Resetar Jogo</button>
     </div>
 
     <script>
-        /* JS - Lógica de Funcionamento */
-
         const gameData = {
             "Suspeitos": [
                 "Coronel Mostarda", "Dona Branca", "Dona Violeta", 
@@ -218,8 +248,6 @@
             ]
         };
 
-        // Estado do jogo: { "NomeItem": "status" }
-        // Status possíveis: null, 'innocent', 'has', 'doubt'
         let gameState = JSON.parse(localStorage.getItem('detetive_save')) || {};
 
         function initGame() {
@@ -254,7 +282,6 @@
         }
 
         function toggleStatus(item, status) {
-            // Se clicar no mesmo botão que já está ativo, ele limpa (volta ao neutro)
             if (gameState[item] === status) {
                 gameState[item] = null;
             } else {
@@ -273,12 +300,11 @@
             for (const [category, items] of Object.entries(gameData)) {
                 items.forEach(item => {
                     const row = document.getElementById(`row-${slugify(item)}`);
+                    if(!row) return;
                     const status = gameState[item];
                     
-                    // Limpa classes anteriores
                     row.classList.remove('state-innocent', 'state-has', 'state-doubt');
                     
-                    // Adiciona nova classe se existir
                     if (status) {
                         row.classList.add(`state-${status}`);
                     }
@@ -291,11 +317,10 @@
                 gameState = {};
                 localStorage.removeItem('detetive_save');
                 initGame();
-                window.scrollTo(0, 0);
+                window.scrollTo({top: 0, behavior: 'smooth'});
             }
         }
 
-        // Helper para criar IDs válidos sem espaços/acentos
         function slugify(text) {
             return text.toString().toLowerCase().trim()
                 .replace(/\s+/g, '-')           
@@ -303,7 +328,6 @@
                 .replace(/\-\-+/g, '-');
         }
 
-        // Iniciar
         initGame();
     </script>
 </body>
