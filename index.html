@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detetive - Bloco de Notas</title>
+    <style>
+        /* CSS - Estilização Modern Noir */
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-gold: #d4af37;
+            --accent-red: #8b0000;
+            --text-color: #e0e0e0;
+            --text-muted: #888;
+            --border-color: #333;
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-title: 'Georgia', serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            padding-bottom: 80px; /* Espaço para o botão flutuante */
+        }
+
+        header {
+            background: linear-gradient(to bottom, #1a1a1a, #121212);
+            padding: 2rem 1rem;
+            text-align: center;
+            border-bottom: 2px solid var(--accent-gold);
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-family: var(--font-title);
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 1.8rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .category-section {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
+        }
+
+        .category-header {
+            background-color: var(--accent-red);
+            color: white;
+            padding: 10px 15px;
+            font-family: var(--font-title);
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Lista de Itens */
+        .item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .item-row:last-child { border-bottom: none; }
+
+        .item-name {
+            flex-grow: 1;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        /* Controles de marcação */
+        .controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: #2a2a2a;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        /* Estados Ativos */
+        /* X - Inocente */
+        .item-row.state-innocent {
+            opacity: 0.4;
+            background-color: rgba(0,0,0,0.2);
+        }
+        .item-row.state-innocent .item-name {
+            text-decoration: line-through;
+        }
+        .item-row.state-innocent .btn-x {
+            background-color: #444;
+            color: white;
+            border-color: #666;
+        }
+
+        /* V - Possui a carta */
+        .item-row.state-has {
+            border-left: 5px solid var(--accent-gold);
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+        .item-row.state-has .btn-v {
+            background-color: var(--accent-gold);
+            color: black;
+            border-color: var(--accent-gold);
+        }
+
+        /* ? - Dúvida */
+        .item-row.state-doubt .item-name {
+            color: var(--accent-gold);
+            font-style: italic;
+        }
+        .item-row.state-doubt .btn-q {
+            background-color: #3d3d3d;
+            color: cyan;
+            border-color: cyan;
+        }
+
+        /* Botão Resetar */
+        .reset-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .btn-reset {
+            background-color: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .btn-reset:active { transform: scale(0.95); }
+
+        /* Responsividade */
+        @media (max-width: 400px) {
+            .btn-mark { width: 35px; height: 35px; }
+            .item-name { font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Investigação</h1>
+        <p style="color: var(--text-muted); font-size: 0.8rem;">BLOCO DE NOTAS CRIMINAL</p>
+    </header>
+
+    <div class="container" id="main-content">
+        <!-- As categorias serão geradas via JavaScript -->
+    </div>
+
+    <div class="reset-container">
+        <button class="btn-reset" onclick="confirmReset()">Resetar Jogo</button>
+    </div>
+
+    <script>
+        /* JS - Lógica de Funcionamento */
+
+        const gameData = {
+            "Suspeitos": [
+                "Coronel Mostarda", "Dona Branca", "Dona Violeta", 
+                "Professor Black", "Sr. Marinho", "Senhorita Rosa"
+            ],
+            "Armas": [
+                "Cano de Ferro", "Corda", "Adaga", 
+                "Pistola", "Castiçal", "Chave Inglesa"
+            ],
+            "Locais": [
+                "Biblioteca", "Cozinha", "Entrada", "Salão de Jogos", 
+                "Escritório", "Jardim de Inverno", "Sala de Estar", 
+                "Sala de Jantar", "Salão de Festas"
+            ]
+        };
+
+        // Estado do jogo: { "NomeItem": "status" }
+        // Status possíveis: null, 'innocent', 'has', 'doubt'
+        let gameState = JSON.parse(localStorage.getItem('detetive_save')) || {};
+
+        function initGame() {
+            const container = document.getElementById('main-content');
+            container.innerHTML = '';
+
+            for (const [category, items] of Object.entries(gameData)) {
+                const section = document.createElement('section');
+                section.className = 'category-section';
+                
+                let html = `<div class="category-header">${category}</div>`;
+                
+                items.forEach(item => {
+                    const status = gameState[item] || '';
+                    const stateClass = status ? `state-${status}` : '';
+                    
+                    html += `
+                        <div class="item-row ${stateClass}" id="row-${slugify(item)}">
+                            <span class="item-name">${item}</span>
+                            <div class="controls">
+                                <button class="btn-mark btn-x" onclick="toggleStatus('${item}', 'innocent')">X</button>
+                                <button class="btn-mark btn-v" onclick="toggleStatus('${item}', 'has')">✓</button>
+                                <button class="btn-mark btn-q" onclick="toggleStatus('${item}', 'doubt')">?</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                section.innerHTML = html;
+                container.appendChild(section);
+            }
+        }
+
+        function toggleStatus(item, status) {
+            // Se clicar no mesmo botão que já está ativo, ele limpa (volta ao neutro)
+            if (gameState[item] === status) {
+                gameState[item] = null;
+            } else {
+                gameState[item] = status;
+            }
+            
+            saveAndRefresh();
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('detetive_save', JSON.stringify(gameState));
+            updateUI();
+        }
+
+        function updateUI() {
+            for (const [category, items] of Object.entries(gameData)) {
+                items.forEach(item => {
+                    const row = document.getElementById(`row-${slugify(item)}`);
+                    const status = gameState[item];
+                    
+                    // Limpa classes anteriores
+                    row.classList.remove('state-innocent', 'state-has', 'state-doubt');
+                    
+                    // Adiciona nova classe se existir
+                    if (status) {
+                        row.classList.add(`state-${status}`);
+                    }
+                });
+            }
+        }
+
+        function confirmReset() {
+            if (confirm("Deseja realmente apagar todas as marcações? Esta ação não pode ser desfeita.")) {
+                gameState = {};
+                localStorage.removeItem('detetive_save');
+                initGame();
+                window.scrollTo(0, 0);
+            }
+        }
+
+        // Helper para criar IDs válidos sem espaços/acentos
+        function slugify(text) {
+            return text.toString().toLowerCase().trim()
+                .replace(/\s+/g, '-')           
+                .replace(/[^\w\-]+/g, '')       
+                .replace(/\-\-+/g, '-');
+        }
+
+        // Iniciar
+        initGame();
+    </script>
+</body>
+</html>
