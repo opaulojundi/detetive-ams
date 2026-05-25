@@ -1,0 +1,24 @@
+{
+  "name": "Detetive — Mansão do Crime",
+  "short_name": "Detetive",
+  "description": "Um jogo de mistério e dedução na Mansão do Crime.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0d0a08",
+  "theme_color": "#8b1a1a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230d0a08'/><text x='50%' y='65%' font-family='serif' font-size='280' fill='%23c9a84c' text-anchor='middle'>🕵</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230d0a08'/><text x='50%' y='65%' font-family='serif' font-size='110' fill='%23c9a84c' text-anchor='middle'>🕵</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
